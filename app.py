@@ -1,35 +1,28 @@
 import streamlit as st
 from PIL import Image
 
-st.set_page_config(page_title="My Private Face Swap AI", page_layout="centered")
-
 st.title("🎭 My Private Face / Head Swap AI")
 
-# Yahan apna koi bhi password rakh lijiye jo aapko yaad rahe
+# Password Protection
 PASSWORD = "mysecretpassword"
-
 user_password = st.text_input("Enter Password to Access:", type="password")
 
 if user_password == PASSWORD:
   st.success("Access Granted! 🎉")
 
-  # Hugging Face Token check karna
+  # Hugging Face Token check
   try:
     hf_token = st.secrets["HF_TOKEN"]
-    st.info("Hugging Face Token successfully loaded!")
+    st.info("Hugging Face Token loaded successfully!")
   except Exception:
-    st.warning(
-        "⚠️ HF_TOKEN abhi Streamlit Secrets me add nahi kiya gaya hai. (Isse"
-        " hum baad me set kar lenge)"
-    )
+    st.warning("⚠️ HF_TOKEN is missing in Streamlit Secrets.")
     hf_token = None
 
   uploaded_target = st.file_uploader(
-      "Upload Target Image (Jisme face lagana hai)", type=["jpg", "png", "jpeg"]
+      "Upload Target Image", type=["jpg", "png", "jpeg"]
   )
   uploaded_source = st.file_uploader(
-      "Upload Source Face Image (Jiska face swap karna hai)",
-      type=["jpg", "png", "jpeg"],
+      "Upload Source Face Image", type=["jpg", "png", "jpeg"]
   )
 
   if uploaded_target and uploaded_source:
@@ -38,16 +31,14 @@ if user_password == PASSWORD:
 
     col1, col2 = st.columns(2)
     with col1:
-      st.image(target_image, caption="Target Image", use_column_width=True)
+      st.image(target_image, caption="Target Image")
     with col2:
-      st.image(source_image, caption="Source Face", use_column_width=True)
+      st.image(source_image, caption="Source Face")
 
     if st.button("Start Face Swap"):
-      with st.spinner("Processing..."):
-        st.success("Files successfully uploaded! AI processing is ready.")
+      st.success("App is running successfully with your Hugging Face setup!")
 
 elif user_password:
   st.error("Incorrect Password! ❌")
 else:
   st.warning("Please enter the password to access the app.")
-  
