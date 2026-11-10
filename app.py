@@ -1,6 +1,5 @@
-import io
 import streamlit as st
-from huggingface_hub import InferenceClient
+from gradio_client import Client
 from PIL import Image
 
 st.title("🎭 My Private Face Swap AI")
@@ -17,7 +16,6 @@ if user_password == PASSWORD:
     hf_token = st.secrets["HF_TOKEN"]
     st.success("Hugging Face Token loaded successfully!")
   except Exception:
-    st.error("⚠️ HF_TOKEN is missing in Streamlit Secrets.")
     hf_token = None
 
   uploaded_target = st.file_uploader(
@@ -29,42 +27,44 @@ if user_password == PASSWORD:
   )
 
   if uploaded_target and uploaded_source:
-    target_image = Image.open(uploaded_target)
-    source_image = Image.open(uploaded_source)
+    # Temporary files save karna
+    target_path = "target.jpg"
+    source_path = "source.jpg"
+
+    with open(target_path, "wb") as f:
+      f.write(uploaded_target.getbuffer())
+    with open(source_path, "wb") as f:
+      f.write(uploaded_source.getbuffer())
 
     col1, col2 = st.columns(2)
     with col1:
-      st.image(target_image, caption="Target Image", use_column_width=True)
+      st.image(uploaded_target, caption="Target Image", use_column_width=True)
     with col2:
-      st.image(source_image, caption="Source Face", use_column_width=True)
+      st.image(uploaded_source, caption="Source Face", use_column_width=True)
 
     if st.button("Start Face Swap"):
-      if hf_token:
-        with st.spinner("Processing Face Swap securely..."):
-          try:
-            # Official Hugging Face Client use kar rahe hain
-            client = InferenceClient(token=hf_token)
+      with st.spinner(
+          "Processing Face Swap using Hugging Face Space backend..."
+      ):
+        try:
+          # Gradio Client ke zariye Space ko connect karna
+          client = Client("tinside/inswapper", hf_token=hf_token)
+          result = client.predict(
+              target_image=target_path,
+              source_image=source_path,
+              api_name="/predict",
+          )
 
-            # Model ko client ke zariye call karna
-            image_bytes = client.image_to_image(
-                image=target_image,
-                prompt=(
-                    "face swap target with source face"
-                ),  # Model prompt requirement
-                model="tinside/inswapper",
-            )
-
-            st.image(
-                image_bytes, caption="Swapped Result", use_column_width=True
-            )
-            st.success("Face Swap Successful! 🎉")
-          except Exception as e:
-            st.info(
-                "Note: Kuch Hugging Face models free tier par load hone me thoda"
-                f" waqt lete hain ya restricted hote hain. Details: {e}"
-            )
-      else:
-        st.error("Hugging Face Token is missing!")
+          # Result display karna
+          result_image = Image.open(result)
+          st.image(
+              result_image, caption="Swapped Result", use_column_width=True
+          )
+          st.success("Face Swap Successful! 🎉")
+        except Exception as e:
+          st.error(
+              f"Processing Error: {e}. (Make sure your HF Token is valid)"
+          )
 
 elif user_password:
   st.error("Incorrect Password! ❌")
