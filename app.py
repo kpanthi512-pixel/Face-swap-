@@ -11,13 +11,6 @@ user_password = st.text_input("Enter Password to Access:", type="password")
 if user_password == PASSWORD:
   st.success("Access Granted! 🎉")
 
-  # Hugging Face Token check
-  try:
-    hf_token = st.secrets["HF_TOKEN"]
-    st.success("Hugging Face Token loaded successfully!")
-  except Exception:
-    hf_token = None
-
   uploaded_target = st.file_uploader(
       "Upload Target Image (Jisme face lagana hai)", type=["jpg", "png", "jpeg"]
   )
@@ -27,7 +20,6 @@ if user_password == PASSWORD:
   )
 
   if uploaded_target and uploaded_source:
-    # Temporary files save karna
     target_path = "target.jpg"
     source_path = "source.jpg"
 
@@ -43,27 +35,26 @@ if user_password == PASSWORD:
       st.image(uploaded_source, caption="Source Face", use_column_width=True)
 
     if st.button("Start Face Swap"):
-      with st.spinner(
-          "Processing Face Swap using Hugging Face Space backend..."
-      ):
+      with st.spinner("Processing Face Swap..."):
         try:
-          # Gradio Client ke zariye Space ko connect karna
-          client = Client("tinside/inswapper", token=hf_token)
+          # Ek doosra active aur public face-swap space use kar rahe hain
+          client = Client("face-swap/faceswap")
           result = client.predict(
-              target_image=target_path,
-              source_image=source_path,
+              input_image=target_path,
+              swap_image=source_path,
               api_name="/predict",
           )
 
-          # Result display karna
           result_image = Image.open(result)
           st.image(
               result_image, caption="Swapped Result", use_column_width=True
           )
           st.success("Face Swap Successful! 🎉")
         except Exception as e:
+          # Agar pehla na chale toh fallback direct message
           st.error(
-              f"Processing Error: {e}. (Make sure your HF Token is valid)"
+              f"Error: {e}. (Free public AI servers kabhi-kabhi busy hote hain,"
+              " 1 minute baad dobara try karein)"
           )
 
 elif user_password:
