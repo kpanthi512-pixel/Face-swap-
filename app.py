@@ -48,7 +48,7 @@ if user_password == PASSWORD:
       ):
         try:
           # Gradio Client ke zariye Space ko connect karna
-          client = Client("tinside/inswapper", hf_token=hf_token)
+          client = Client("tinside/inswapper", token=hf_token)
           result = client.predict(
               target_image=target_path,
               source_image=source_path,
