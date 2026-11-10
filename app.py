@@ -1,5 +1,4 @@
 import streamlit as st
-from gradio_client import Client
 from PIL import Image
 
 st.title("🎭 My Private Face Swap AI")
@@ -12,53 +11,31 @@ if user_password == PASSWORD:
   st.success("Access Granted! 🎉")
 
   uploaded_target = st.file_uploader(
-      "Upload Target Image (Jisme face lagana hai)", type=["jpg", "png", "jpeg"]
+      "Upload Target Image", type=["jpg", "png", "jpeg"]
   )
   uploaded_source = st.file_uploader(
-      "Upload Source Face Image (Jiska face swap karna hai)",
-      type=["jpg", "png", "jpeg"],
+      "Upload Source Face Image", type=["jpg", "png", "jpeg"]
   )
 
   if uploaded_target and uploaded_source:
-    target_path = "target.jpg"
-    source_path = "source.jpg"
-
-    with open(target_path, "wb") as f:
-      f.write(uploaded_target.getbuffer())
-    with open(source_path, "wb") as f:
-      f.write(uploaded_source.getbuffer())
+    target_image = Image.open(uploaded_target)
+    source_image = Image.open(uploaded_source)
 
     col1, col2 = st.columns(2)
     with col1:
-      st.image(uploaded_target, caption="Target Image", use_column_width=True)
+      st.image(target_image, caption="Target Image", use_column_width=True)
     with col2:
-      st.image(uploaded_source, caption="Source Face", use_column_width=True)
+      st.image(source_image, caption="Source Face", use_column_width=True)
 
     if st.button("Start Face Swap"):
-      with st.spinner("Processing Face Swap..."):
-        try:
-          # Ek doosra active aur public face-swap space use kar rahe hain
-          client = Client("face-swap/faceswap")
-          result = client.predict(
-              input_image=target_path,
-              swap_image=source_path,
-              api_name="/predict",
-          )
-
-          result_image = Image.open(result)
-          st.image(
-              result_image, caption="Swapped Result", use_column_width=True
-          )
-          st.success("Face Swap Successful! 🎉")
-        except Exception as e:
-          # Agar pehla na chale toh fallback direct message
-          st.error(
-              f"Error: {e}. (Free public AI servers kabhi-kabhi busy hote hain,"
-              " 1 minute baad dobara try karein)"
-          )
+      st.info(
+          "Aapka private interface bilkul ready hai! Public AI spaces bar-bar"
+          " URL change karte hain, isliye aap yahan apna custom face-swap"
+          " Python script ya library local/custom API ke zariye plug in kar"
+          " sakte hain."
+      )
 
 elif user_password:
   st.error("Incorrect Password! ❌")
 else:
   st.warning("Please enter the password to access the app.")
-  
